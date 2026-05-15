@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La page de David</title>
+  <link rel="stylesheet" href="/index.css">
+  
+  
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="https://adavida.github.io/rss.xml">
+  
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <header>
+    <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;" class="site-title">La page de David</a>
+  </header>
+
+  <main>
+    <nav class="sidebar" aria-label="Menu principal">
+      <ul class="sidebar-nav">
+      
+        
+          
+            
+            
+              <li>Configuration de mon nas
+                <ul>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;000-my-new-nas&#x2F;">Présentation de mon nouveau NAS</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;010-install-test-vm&#x2F;">Installation d&#x27;une machine virtuel pour tester</a>
+                    </li>
+                  
+                    <li class="current">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;030-coredns&#x2F;">Installation de CoreDNS</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;040-openldap&#x2F;">Installation de OpenLDAP</a>
+                    </li>
+                  
+                </ul>
+              </li>
+            
+          
+            
+            
+              <li>Sécurité
+                <ul>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;010_security&#x2F;000-dirtyfrag&#x2F;">Le faille Dirty Frag et NixOS </a>
+                    </li>
+                  
+                </ul>
+              </li>
+            
+          
+        
+      </ul>
+    </nav>
+
+    <div class="content" id="main-content">
+      
+<article>
+  <header class="article-header">
+    <h1>Installation de CoreDNS</h1>
+  </header>
+  
+  <div class="article-content">
+    <p>Je souhaite pouvoir accéder aux services sur le NAS via une adresse : <em>nom_du_service.nas.local</em>.</p>
+<p>Pour cela plusieurs solutions sont possibles :</p>
+<ul>
+<li>Modifier le fichier hosts de toutes les machines et ajouter tous les services.<br />
+Cela me pose comme problème :
+<ol>
+<li>je dois modifier toutes les machines qui souhaitent les utiliser avec le service.</li>
+<li>impossible d'utiliser générique <em>*.nas.local</em>, à chaque nouveau service, je dois modifier toutes les machines.</li>
+</ol>
+</li>
+<li>Utiliser la diffusion des noms par le protocole mDNS, J'ai testé, c'est très limité et pas super fiable.</li>
+<li>Modifier les réponses du serveur DNS, sur mon réseau, j'utilise celui fourni par la box, et il n'offre pas de possiblité.</li>
+<li>Crée un serveur DNS et l'utiliser, j'ai choisi <a rel="external" href="https://coredns.io">CoreDNS</a>.</li>
+</ul>
+<p><a rel="external" href="https://search.nixos.org/options?channel=24.11&amp;from=0&amp;size=50&amp;sort=relevance&amp;type=packages&amp;query=services.coredns">Les options de NixOS CodeDns</a>
+<a rel="external" href="https://coredns.io/manual/toc/">CoreDns Manual</a></p>
+<p>Dans le répertoire de partage avec la VM, je crée un fichier <strong>coredns.nix</strong> avec :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{ config</span><span style="color: #D73A49;">,</span><span> pkgs</span><span style="color: #D73A49;">, ...</span><span>}:</span></span>
+<span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    networking</span><span>.</span><span style="color: #6F42C1;">firewall</span><span>.</span><span style="color: #6F42C1;">allowedUDPPorts</span><span style="color: #D73A49;">=</span><span> [</span><span style="color: #005CC5;"> 53</span><span> ];</span><span style="color: #6A737D;"> # ouverture du port dns dans le parfeu.</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    services</span><span>.</span><span style="color: #6F42C1;">coredns</span><span style="color: #D73A49;">=</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      enable</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span><span style="color: #6A737D;"> # activation de CoreDns</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      extraArgs</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;-dns.port=53&quot;</span></span>
+<span class="giallo-l"><span>      ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      config</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &#39;&#39;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        . {</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            errors</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            health</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            ready</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            forward . /etc/resolv.conf</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            cache 30</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            loop</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            reload</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            loadbalance</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            log</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          }</span></span>
+<span class="giallo-l"><span style="color: #032F62;">         &#39;&#39;</span><span>;</span></span>
+<span class="giallo-l"><span>    };</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>On ajoute dans le fichier dans les imports <strong>main.nix</strong></p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{ config</span><span style="color: #D73A49;">,</span><span> pkgs</span><span style="color: #D73A49;">, ...</span><span>}:</span></span>
+<span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  imports</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">    ./coredns.nix</span></span>
+<span class="giallo-l"><span>  ];</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>On rebuild la configuration avec la commande <strong>nixos-rebuild switch</strong>.</p>
+<p>Si tout se passe bien le serveur DNS est fonctionnelle, on peut le tester avec <strong>dig @192.168.0.201 google.fr</strong> - remplacer 192.168.0.201 par IP de votre VM - depuis la machine hôte.
+Pour voir les logs <strong>sudo journalctl -u coredns -f</strong> dans la VM.</p>
+<p>Maintenant comment ajouter la configuration qui permet d'associer IP à <em>nom_du_service.test-nas.local</em></p>
+<p>Pour ce qui est des variables, on les place dans un fichier <em>vars.nix</em>:</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  ip</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;192.168.0.201&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  base_host</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;test-nas.local&quot;</span><span>;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Puis on modifie <strong>coredns.nix</strong> :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{ config</span><span style="color: #D73A49;">,</span><span> pkgs</span><span style="color: #D73A49;">, ...</span><span>}:</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">let</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  vars</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> import</span><span style="color: #032F62;"> ./vars.nix</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">in</span></span>
+<span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    networking</span><span>.</span><span style="color: #6F42C1;">firewall</span><span>.</span><span style="color: #6F42C1;">allowedUDPPorts</span><span style="color: #D73A49;">=</span><span> [</span><span style="color: #005CC5;"> 53</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    # on crée le fichier avec la configuration de la reponce dns</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    environment</span><span>.</span><span style="color: #6F42C1;">etc</span><span>.</span><span style="color: #032F62;">&quot;dns.db&quot;</span><span>.</span><span style="color: #6F42C1;">text</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &#39;&#39;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      $TTL 3600</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      @   IN  SOA ns1.${</span><span style="color: #005CC5;">vars</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">base_host</span><span style="color: #032F62;">}. admin.${</span><span style="color: #005CC5;">vars</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">base_host</span><span style="color: #032F62;">}. (</span></span>
+<span class="giallo-l"><span style="color: #032F62;">              2023101001 ; Serial</span></span>
+<span class="giallo-l"><span style="color: #032F62;">              3600       ; Refresh</span></span>
+<span class="giallo-l"><span style="color: #032F62;">              1800       ; Retry</span></span>
+<span class="giallo-l"><span style="color: #032F62;">              604800     ; Expire</span></span>
+<span class="giallo-l"><span style="color: #032F62;">              86400      ; Minimum TTL</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      )</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      ;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      @    IN  NS  ns1.${</span><span style="color: #005CC5;">vars</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">base_host</span><span style="color: #032F62;">}.</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      ns   IN  A ${</span><span style="color: #005CC5;">vars</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">ip</span><span style="color: #032F62;">}</span></span>
+<span class="giallo-l"><span style="color: #032F62;">      *    IN  A ${</span><span style="color: #005CC5;">vars</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">ip</span><span style="color: #032F62;">}</span></span>
+<span class="giallo-l"><span style="color: #032F62;">    &#39;&#39;</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    services</span><span>.</span><span style="color: #6F42C1;">coredns</span><span style="color: #D73A49;">=</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      enable</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      extraArgs</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;-dns.port=53&quot;</span></span>
+<span class="giallo-l"><span>      ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      config</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &#39;&#39;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        . {</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            errors</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            health</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            ready</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            forward . /etc/resolv.conf</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            cache 30</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            loop</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            reload</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            loadbalance</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            log</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          }</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          # on ajoute ici la configuration</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          ${</span><span style="color: #005CC5;">vars</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">base_host</span><span style="color: #032F62;">}:53 {</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            file /etc/dns.db</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            log</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            errors</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          }</span></span>
+<span class="giallo-l"><span style="color: #032F62;">         &#39;&#39;</span><span>;</span></span>
+<span class="giallo-l"><span>    };</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>On rebuild la configuration <strong>sudo nixos-rebuild switch</strong> dans la VM et on teste sûr sur l'hôte avec <strong>dig @192.168.0.201 toto.test-nas.local</strong></p>
+<p>Après, il ne reste qu'à modifier sa box internet pour qui fournisse ip de notre nas comme serveur DNS.
+Pensée à garder les anciens en secondaires, au cas où votre nas n'est pas disponible.
+D'autre solution, est de modifier la configuration réseau sur les pc qui connecte sur le nas.</p>
+<p>Enfin parmi le problème que j'ai rencontré est que le serveur DHCP de ma box fournie une adresse DNS en ipV6. Pour que notre serveur DNS soit utilisé, il faut le déactiver.</p>
+
+  </div>
+</article>
+
+
+
+<nav class="section-pages">
+  <h4>Configuration de mon nas:</h4>
+  <ul>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;000-my-new-nas&#x2F;">Présentation de mon nouveau NAS</a>
+      </li>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;010-install-test-vm&#x2F;">Installation d&#x27;une machine virtuel pour tester</a>
+      </li>
+    
+      
+        
+          
+      <li class="current">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;030-coredns&#x2F;">Installation de CoreDNS</a>
+      </li>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;040-openldap&#x2F;">Installation de OpenLDAP</a>
+      </li>
+    
+  </ul>
+</nav>
+
+
+    </div>
+  </main>
+  
+  <footer>
+    <div class="footer-about">
+      <p>Blog personnel sur mes tribulations personnelles sur le développement, Linux, et auto-hébergement.</p>
+    </div>
+  </footer>
+</body>
+
+</html>

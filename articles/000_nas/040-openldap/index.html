@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La page de David</title>
+  <link rel="stylesheet" href="/index.css">
+  
+  
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="https://adavida.github.io/rss.xml">
+  
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <header>
+    <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;" class="site-title">La page de David</a>
+  </header>
+
+  <main>
+    <nav class="sidebar" aria-label="Menu principal">
+      <ul class="sidebar-nav">
+      
+        
+          
+            
+            
+              <li>Configuration de mon nas
+                <ul>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;000-my-new-nas&#x2F;">Présentation de mon nouveau NAS</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;010-install-test-vm&#x2F;">Installation d&#x27;une machine virtuel pour tester</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;030-coredns&#x2F;">Installation de CoreDNS</a>
+                    </li>
+                  
+                    <li class="current">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;040-openldap&#x2F;">Installation de OpenLDAP</a>
+                    </li>
+                  
+                </ul>
+              </li>
+            
+          
+            
+            
+              <li>Sécurité
+                <ul>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;010_security&#x2F;000-dirtyfrag&#x2F;">Le faille Dirty Frag et NixOS </a>
+                    </li>
+                  
+                </ul>
+              </li>
+            
+          
+        
+      </ul>
+    </nav>
+
+    <div class="content" id="main-content">
+      
+<article>
+  <header class="article-header">
+    <h1>Installation de OpenLDAP</h1>
+  </header>
+  
+  <div class="article-content">
+    <p>Je souhaite avoir un nom utilisateur et mot de passe qui soit partagé entre les différents services que je souhaite installer. La solution que j’ai choisie est utilisée <a rel="external" href="https://www.openldap.org/">OpenLDAP</a>. <br/>
+Parmi les alternatives, que j’ai regardé, <a rel="external" href="https://github.com/lldap/lldap">lldap</a>, il est plus simple à utiliser et à installer, il fournit une interface pour gérer les utilisateurs, mais pendant mes premiers essais, il ne gérait pas l’intégration avec Linux sur la version stable.</p>
+<p>Je me suis basé sur la page du <a rel="external" href="https://wiki.nixos.org/wiki/OpenLDAP">wiki</a>.</p>
+<p>Je ne vais pas expliquer le fonctionnement du protocole LDAP, je vais juste expliquer comment installer un serveur openldap avec nixos et controller qu'il fonctionne.</p>
+<h3 id="installation-sans-chiffrement">Installation sans chiffrement</h3>
+<p>Pour commencer, je crée un fichier openldap.nix, avec :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{ config</span><span style="color: #D73A49;">,</span><span> pkgs</span><span style="color: #D73A49;">, ...</span><span> }:</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  let</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    vars</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> import</span><span style="color: #032F62;"> ./vars.nix</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  in</span></span>
+<span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;"> services</span><span>.</span><span style="color: #6F42C1;">openldap</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    enable</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    /* enable plain connections only */</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    urlList</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #032F62;"> &quot;ldap:///&quot;</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    settings</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      attrs</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcLogLevel</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;conns config&quot;</span><span>;</span></span>
+<span class="giallo-l"><span>      };</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      children</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;cn=schema&quot;</span><span>.</span><span style="color: #6F42C1;">includes</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;${</span><span style="color: #005CC5;">pkgs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">openldap</span><span style="color: #032F62;">}/etc/schema/core.ldif&quot;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;${</span><span style="color: #005CC5;">pkgs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">openldap</span><span style="color: #032F62;">}/etc/schema/cosine.ldif&quot;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;${</span><span style="color: #005CC5;">pkgs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">openldap</span><span style="color: #032F62;">}/etc/schema/inetorgperson.ldif&quot;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;${</span><span style="color: #005CC5;">pkgs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">openldap</span><span style="color: #032F62;">}/etc/schema/nis.ldif&quot;</span></span>
+<span class="giallo-l"><span>        ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;olcDatabase={1}mdb&quot;</span><span>.</span><span style="color: #6F42C1;">attrs</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          objectClass</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #032F62;"> &quot;olcDatabaseConfig&quot; &quot;olcMdbConfig&quot;</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcDatabase</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;{1}mdb&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcDbDirectory</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;/var/lib/openldap/data&quot;</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcSuffix</span><span style="color: #D73A49;"> =</span><span style="color: #E36209;"> vars</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">base_dn</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">          /* your admin account, do not use writeText on a production system */</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcRootDN</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;cn=admin,${</span><span style="color: #005CC5;">vars</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">base_dn</span><span style="color: #032F62;">}&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcRootPW</span><span>.</span><span style="color: #6F42C1;">path</span><span style="color: #D73A49;"> =</span><span style="color: #E36209;"> pkgs</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">writeText</span><span style="color: #032F62;"> &quot;olcRootPW&quot; &quot;pass&quot;</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcAccess</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">            /* custom access rules for userPassword attributes */</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            &#39;&#39;{0}to attrs=userPassword</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by self write</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by anonymous auth</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by * none&#39;&#39;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">            /* allow read on anything else */</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            &#39;&#39;{1}to *</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by self read</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by * read&#39;&#39;</span></span>
+<span class="giallo-l"><span>          ];</span></span>
+<span class="giallo-l"><span>        };</span></span>
+<span class="giallo-l"><span>      };</span></span>
+<span class="giallo-l"><span>    };</span></span>
+<span class="giallo-l"><span>  };</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Je l’ajoute dans le fichier main.nix</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{ config</span><span style="color: #D73A49;">,</span><span> pkgs</span><span style="color: #D73A49;">, ...</span><span> }:</span></span>
+<span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  imports</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">    ./coredns.nix</span></span>
+<span class="giallo-l"><span style="color: #032F62;">    ./openldap.nix</span></span>
+<span class="giallo-l"><span>  ];</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Et j’ajoute dans vars.nix la variable base_dn</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  ip</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;192.168.0.201&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  base_host</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;test-nas.local&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  base_dn</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;DC=test-nas,DC=local&quot;</span><span>;</span></span>
+<span class="giallo-l"><span>}</span></span>
+<span class="giallo-l"></span></code></pre>
+<p>Enfin, je rebuild le système avec :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">nixos-rebuild</span><span style="color: #032F62;"> switch</span></span></code></pre>
+<p>Si tout fonctionne sur la machine, on peut tester avec</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">ldapsearch</span><span style="color: #005CC5;"> -w</span><span style="color: #032F62;"> pass</span><span style="color: #005CC5;"> -H</span><span style="color: #032F62;"> ldap://127.0.0.1:389</span><span style="color: #005CC5;"> -D</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span><span style="color: #005CC5;"> -b</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span></span></code></pre>
+<p>Cela lance la une recherche dans l’annuaire. L’option : -w, c’est pour passer le mot de passe et l'option : -D, le Distinguished Name (identifiant unique) sur lequel on lance la recherche.</p>
+<p>Pour pouvoir tester tous les postes sur le réseau, on ouvre les ports en ajoutant dans le fichier openldap.nix</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>  { config</span><span style="color: #D73A49;">,</span><span> pkgs</span><span style="color: #D73A49;">, ...</span><span> }:</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    let</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      vars</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> import</span><span style="color: #032F62;"> ./vars.nix</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">    in</span></span>
+<span class="giallo-l"><span>  {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">    # ouverture du ports 389</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    networking</span><span>.</span><span style="color: #6F42C1;">firewall</span><span>.</span><span style="color: #6F42C1;">allowedTCPPorts</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #005CC5;"> 389</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    services</span><span>.</span><span style="color: #6F42C1;">openldap</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">        # ...</span></span>
+<span class="giallo-l"><span>    };</span></span>
+<span class="giallo-l"><span>  }</span></span></code></pre><pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">ldapsearch</span><span style="color: #005CC5;"> -w</span><span style="color: #032F62;"> pass</span><span style="color: #005CC5;"> -H</span><span style="color: #032F62;"> ldap://{ip-de-la-machine}:389</span><span style="color: #005CC5;"> -D</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span><span style="color: #005CC5;"> -b</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span></span></code></pre>
+<p>On peut aussi utiliser des outils graphiques, moi, j'utilise <a rel="external" href="https://directory.apache.org/studio/downloads.html">apache directory studio</a></p>
+<p>Attention le port 389 n’est pas chiffré, toutes les informations passent en claire sur le réseau.</p>
+<h3 id="ssl">SSL</h3>
+<p>Je pars que vous possédiez les certificats, <a rel="external" href="https://www.linuxtricks.fr/wiki/openssl-creation-d-une-autorite-de-certification-interne-et-de-certificats-clients">vous trouvez ici comment crée un certificat autosigné </a></p>
+<p>On aura besoin :</p>
+<ul>
+<li>le certificat racine : "/etc/nixos/secret/certs/homeCA.crt";</li>
+<li>le certificat du ldap : "/etc/nixos/secret/certs/ldap.crt";</li>
+<li>la clée privée du certificat du ldap : "/etc/nixos/secret/certs/ldap.key"</li>
+</ul>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{ config</span><span style="color: #D73A49;">,</span><span> pkgs</span><span style="color: #D73A49;">, ...</span><span> }:</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  let</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    vars</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> import</span><span style="color: #032F62;"> ./vars.nix</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  in</span></span>
+<span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  # le port ldaps est 636</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  networking</span><span>.</span><span style="color: #6F42C1;">firewall</span><span>.</span><span style="color: #6F42C1;">allowedTCPPorts</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #005CC5;"> 636</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  services</span><span>.</span><span style="color: #6F42C1;">openldap</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    enable</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    # on change ici de ldap à ldaps</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    urlList</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #032F62;"> &quot;ldaps:///&quot;</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    settings</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      attrs</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcLogLevel</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;conns config&quot;</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">        # on ajoute les informnation</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcTLSCACertificateFile</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;/etc/nixos/secret/certs/homeCA.crt&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcTLSCertificateFile</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;/etc/nixos/secret/certs/ldap.crt&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcTLSCertificateKeyFile</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;/etc/nixos/secret/certs/ldap.key&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcTLSCipherSuite</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;HIGH:MEDIUM:+3DES:+RC4:+aNULL&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcTLSCRLCheck</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;none&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcTLSVerifyClient</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;never&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">        olcTLSProtocolMin</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;3.1&quot;</span><span>;</span></span>
+<span class="giallo-l"><span>      };</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">      children</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;cn=schema&quot;</span><span>.</span><span style="color: #6F42C1;">includes</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;${</span><span style="color: #005CC5;">pkgs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">openldap</span><span style="color: #032F62;">}/etc/schema/core.ldif&quot;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;${</span><span style="color: #005CC5;">pkgs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">openldap</span><span style="color: #032F62;">}/etc/schema/cosine.ldif&quot;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;${</span><span style="color: #005CC5;">pkgs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">openldap</span><span style="color: #032F62;">}/etc/schema/inetorgperson.ldif&quot;</span></span>
+<span class="giallo-l"><span style="color: #032F62;">          &quot;${</span><span style="color: #005CC5;">pkgs</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">openldap</span><span style="color: #032F62;">}/etc/schema/nis.ldif&quot;</span></span>
+<span class="giallo-l"><span>        ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;olcDatabase={1}mdb&quot;</span><span>.</span><span style="color: #6F42C1;">attrs</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          objectClass</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #032F62;"> &quot;olcDatabaseConfig&quot; &quot;olcMdbConfig&quot;</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcDatabase</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;{1}mdb&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcDbDirectory</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;/var/lib/openldap/data&quot;</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcSuffix</span><span style="color: #D73A49;"> =</span><span style="color: #E36209;"> vars</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">base_dn</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcRootDN</span><span style="color: #D73A49;"> =</span><span style="color: #032F62;"> &quot;cn=admin,${</span><span style="color: #005CC5;">vars</span><span style="color: #D73A49;">.</span><span style="color: #005CC5;">base_dn</span><span style="color: #032F62;">}&quot;</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcRootPW</span><span>.</span><span style="color: #6F42C1;">path</span><span style="color: #D73A49;"> =</span><span style="color: #E36209;"> pkgs</span><span style="color: #D73A49;">.</span><span style="color: #E36209;">writeText</span><span style="color: #032F62;"> &quot;olcRootPW&quot; &quot;pass&quot;</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">          olcAccess</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">            &#39;&#39;{0}to attrs=userPassword</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by self write</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by anonymous auth</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by * none&#39;&#39;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #032F62;">            &#39;&#39;{1}to *</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by self read</span></span>
+<span class="giallo-l"><span style="color: #032F62;">                by * read&#39;&#39;</span></span>
+<span class="giallo-l"><span>          ];</span></span>
+<span class="giallo-l"><span>        };</span></span>
+<span class="giallo-l"><span>      };</span></span>
+<span class="giallo-l"><span>    };</span></span>
+<span class="giallo-l"><span>  };</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>Si tout s'est bien passée, on teste, depuis le serveur, avec la commande :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span>LDAPTLS_REQCERT</span><span style="color: #D73A49;">=</span><span style="color: #032F62;">never</span><span style="color: #6F42C1;"> ldapsearch</span><span style="color: #005CC5;"> -w</span><span style="color: #032F62;"> pass</span><span style="color: #005CC5;"> -H</span><span style="color: #032F62;"> ldaps://127.0.0.1</span><span style="color: #005CC5;"> -D</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span><span style="color: #005CC5;"> -b</span><span style="color: #032F62;"> &quot;dc=test-nas,dc=local&quot;</span></span></code></pre>
+<p>LDAPTLS_REQCERT=never permet de forcer le certificat SSL à être accepté.</p>
+<h3 id="ldapi">ldapi</h3>
+<p>Il est possible d'interroger le serveur ldap sans passer par le réseau.</p>
+<p>Pour cela, il existe ldapi : LDAP over IPC.</p>
+<p>On modifie openldap.nix pour qu'il utilise l'adresse <code>ldapi://</code> :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="nix"><span class="giallo-l"><span>{ config</span><span style="color: #D73A49;">,</span><span> pkgs</span><span style="color: #D73A49;">, ...</span><span> }:</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  let</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    vars</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> import</span><span style="color: #032F62;"> ./vars.nix</span><span>;</span></span>
+<span class="giallo-l"><span style="color: #D73A49;">  in</span></span>
+<span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: #6A737D;">  # le port ldaps est 636</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  networking</span><span>.</span><span style="color: #6F42C1;">firewall</span><span>.</span><span style="color: #6F42C1;">allowedTCPPorts</span><span style="color: #D73A49;"> =</span><span> [</span><span style="color: #005CC5;"> 636</span><span> ];</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">  services</span><span>.</span><span style="color: #6F42C1;">openldap</span><span style="color: #D73A49;"> =</span><span> {</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    enable</span><span style="color: #D73A49;"> =</span><span style="color: #005CC5;"> true</span><span>;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6A737D;">    # on change ici de ldap à ldaps</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">    urlList</span><span style="color: #D73A49;"> =</span><span> [</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;ldapi://&quot;</span><span style="color: #6A737D;">  # on ajoute cette pour activer  ldap over ipc socket on /var/run/openldap/ldapd.sock</span></span>
+<span class="giallo-l"><span style="color: #032F62;">        &quot;ldaps:///&quot;</span></span>
+<span class="giallo-l"><span>      ];</span></span>
+<span class="giallo-l"><span>  };</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre>
+<p>et pour tester, uniquement sur le serveur ldap :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">ldapsearch</span><span style="color: #005CC5;"> -x -w</span><span style="color: #032F62;"> pass</span><span style="color: #005CC5;"> -H</span><span style="color: #032F62;"> ldapi:///</span><span style="color: #005CC5;"> -D</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span><span style="color: #005CC5;"> -b</span><span style="color: #032F62;"> &quot;dc=test-nas,dc=local&quot;</span></span></code></pre><h3 id="utiliser-le-serveur-ldap">utiliser le serveur ldap</h3>
+<h4 id="pour-interroger-openldap">Pour interroger openLDAP :</h4>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6A737D;"># depuis le serveur</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">ldapsearch</span><span style="color: #005CC5;"> -x -w</span><span style="color: #032F62;"> pass</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -H</span><span style="color: #032F62;"> ldapi:///</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -D</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -b</span><span style="color: #032F62;"> &quot;dc=test-nas,dc=local&quot;</span></span>
+<span class="giallo-l"><span style="color: #6A737D;"># depuis une autre machine</span></span>
+<span class="giallo-l"><span style="color: #6F42C1;">ldapsearch</span><span style="color: #005CC5;"> -x -w</span><span style="color: #032F62;"> pass</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">   -H</span><span style="color: #032F62;"> ldaps://{ip du serveur}</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">   -D</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">   -b</span><span style="color: #032F62;"> &quot;dc=test-nas,dc=local&quot;</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">   -o</span><span style="color: #032F62;"> tls_request=never</span></span></code></pre>
+<p>-x indique le mode authentification <br />
+-w pass: pour le mot de passe ici pass <br />
+-H ldaps://{ip du serveur} est l'adresse ip du serveur ldap<br />
+-D le root dn<br />
+-b "dc=test-nas,dc=local" est la base de recherche<br /></p>
+<h4 id="ajout-d-entree-dans-le-openldap">Ajout d'entrée dans le openLDAP</h4>
+<p>Je crée un fichier base.ldif avec plusieurs entrées que l'on souhaite ajouté au serveur ldap.</p>
+<p>Il est possible les rentrées dans des fichiers séparés.
+Attention à l'ordre ajout dans le openLDAP, à cause des dépendances.</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="plain"><span class="giallo-l"><span># on crée la base</span></span>
+<span class="giallo-l"><span>dn: dc=test-nas,dc=local</span></span>
+<span class="giallo-l"><span>objectClass: top</span></span>
+<span class="giallo-l"><span>objectClass: domain</span></span>
+<span class="giallo-l"><span>dc: test-nas</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span># on créee pour le neoud pour la liste des utilisateur</span></span>
+<span class="giallo-l"><span>dn: ou=users,dc=test-nas,dc=local</span></span>
+<span class="giallo-l"><span>objectClass: organizationalUnit</span></span>
+<span class="giallo-l"><span>ou: users</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span># on crée la liste la liste des groups</span></span>
+<span class="giallo-l"><span>dn: ou=groups,dc=test-nas,dc=local</span></span>
+<span class="giallo-l"><span>objectClass: organizationalUnit</span></span>
+<span class="giallo-l"><span>ou: groups</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span># on crée le 1er utilisateur</span></span>
+<span class="giallo-l"><span>dn: cn=user,ou=Users,dc=test-nas,dc=local</span></span>
+<span class="giallo-l"><span>objectClass: inetOrgPerson</span></span>
+<span class="giallo-l"><span>objectClass: posixAccount</span></span>
+<span class="giallo-l"><span>objectClass: shadowAccount</span></span>
+<span class="giallo-l"><span>uidNumber: 1100</span></span>
+<span class="giallo-l"><span>gidNumber: 1000</span></span>
+<span class="giallo-l"><span>homeDirectory: /home/user</span></span>
+<span class="giallo-l"><span>loginShell: /bin/bash</span></span>
+<span class="giallo-l"><span>givenName: user</span></span>
+<span class="giallo-l"><span>sn: Adler</span></span>
+<span class="giallo-l"><span>cn: user</span></span>
+<span class="giallo-l"><span>displayName: display name</span></span>
+<span class="giallo-l"><span>uid: user</span></span>
+<span class="giallo-l"><span>mail: user@mail.com</span></span>
+<span class="giallo-l"><span>userPassword: 1234</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span># on crée un groupe users</span></span>
+<span class="giallo-l"><span>dn: cn=users,ou=groups,dc=test-nas,dc=local</span></span>
+<span class="giallo-l"><span>objectClass: groupOfNames</span></span>
+<span class="giallo-l"><span>cn: users</span></span>
+<span class="giallo-l"><span>member: uid=user,ou=users,dc=test-nas,dc=local</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span># on crée un groupe admin</span></span>
+<span class="giallo-l"><span>dn: cn=admin,ou=groups,dc=test-nas,dc=local</span></span>
+<span class="giallo-l"><span>objectClass: groupOfNames</span></span>
+<span class="giallo-l"><span>cn: admin</span></span>
+<span class="giallo-l"><span>member: uid=user,ou=users,dc=test-nas,dc=local</span></span></code></pre>
+<p>Pour ajouter les entrer</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">ldapadd</span><span style="color: #005CC5;"> -x -w</span><span style="color: #032F62;"> pass</span><span style="color: #005CC5;"> -H</span><span style="color: #032F62;"> ldaps://{ip du serveur}</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -D</span><span style="color: #032F62;"> &quot;cn=admin,dc=test-nas,dc=local&quot;</span><span style="color: #005CC5;">  \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -o</span><span style="color: #032F62;"> tls_reqcert=never</span><span style="color: #005CC5;"> \</span></span>
+<span class="giallo-l"><span style="color: #005CC5;">  -f</span><span style="color: #032F62;"> base.ldif</span></span></code></pre>
+<p>Et on a la réponse :</p>
+<pre class="giallo" style="color: #24292E; background-color: #FFFFFF;"><code data-lang="shellscript"><span class="giallo-l"><span style="color: #6F42C1;">adding</span><span style="color: #032F62;"> new entry &quot;dc=test-nas,dc=local&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">adding</span><span style="color: #032F62;"> new entry &quot;ou=users,dc=test-nas,dc=local&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">adding</span><span style="color: #032F62;"> new entry &quot;ou=groups,dc=test-nas,dc=local&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">adding</span><span style="color: #032F62;"> new entry &quot;cn=user,ou=Users,dc=test-nas,dc=local&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">adding</span><span style="color: #032F62;"> new entry &quot;cn=users,ou=groups,dc=test-nas,dc=local&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #6F42C1;">adding</span><span style="color: #032F62;"> new entry &quot;cn=admin,ou=groups,dc=test-nas,dc=local&quot;</span></span></code></pre>
+  </div>
+</article>
+
+
+
+<nav class="section-pages">
+  <h4>Configuration de mon nas:</h4>
+  <ul>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;000-my-new-nas&#x2F;">Présentation de mon nouveau NAS</a>
+      </li>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;010-install-test-vm&#x2F;">Installation d&#x27;une machine virtuel pour tester</a>
+      </li>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;030-coredns&#x2F;">Installation de CoreDNS</a>
+      </li>
+    
+      
+        
+          
+      <li class="current">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;040-openldap&#x2F;">Installation de OpenLDAP</a>
+      </li>
+    
+  </ul>
+</nav>
+
+
+    </div>
+  </main>
+  
+  <footer>
+    <div class="footer-about">
+      <p>Blog personnel sur mes tribulations personnelles sur le développement, Linux, et auto-hébergement.</p>
+    </div>
+  </footer>
+</body>
+
+</html>

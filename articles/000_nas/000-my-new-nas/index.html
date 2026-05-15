@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La page de David</title>
+  <link rel="stylesheet" href="/index.css">
+  
+  
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="https://adavida.github.io/rss.xml">
+  
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+  <header>
+    <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;" class="site-title">La page de David</a>
+  </header>
+
+  <main>
+    <nav class="sidebar" aria-label="Menu principal">
+      <ul class="sidebar-nav">
+      
+        
+          
+            
+            
+              <li>Configuration de mon nas
+                <ul>
+                  
+                    <li class="current">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;000-my-new-nas&#x2F;">Présentation de mon nouveau NAS</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;010-install-test-vm&#x2F;">Installation d&#x27;une machine virtuel pour tester</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;030-coredns&#x2F;">Installation de CoreDNS</a>
+                    </li>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;040-openldap&#x2F;">Installation de OpenLDAP</a>
+                    </li>
+                  
+                </ul>
+              </li>
+            
+          
+            
+            
+              <li>Sécurité
+                <ul>
+                  
+                    <li class="">
+                      <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;010_security&#x2F;000-dirtyfrag&#x2F;">Le faille Dirty Frag et NixOS </a>
+                    </li>
+                  
+                </ul>
+              </li>
+            
+          
+        
+      </ul>
+    </nav>
+
+    <div class="content" id="main-content">
+      
+<article>
+  <header class="article-header">
+    <h1>Présentation de mon nouveau NAS</h1>
+  </header>
+  
+  <div class="article-content">
+    <p>Actuellement, je possède un Terramaster F5-221, j'ai changé l'os d'origine par un <a rel="external" href="https://www.openmediavault.org/">openmediavault</a>. J'ai ajouté une barrette ram de 8Go, passant à 10Go.</p>
+<p>Mon usage principal est la sauvegarde de mes données via borg et SFTP de mes données. J'ai aussi quelques dockers pour des applications comme nextcloud pour la sauvegarde de mes applications.</p>
+<p>Comme défaut, que je trouve à configuration actuelle, le manque de performance du CPU. Autre point que j'aimerais changer serais d'avoir un système d'utilisateur unique entre les applications, les partage SFTP que j'utilise.</p>
+<p>Je vais changer de nas, j'ai choisi une configuration à base carte mère mini-itx.</p>
+<p>Un tableau comparatif entre mes deux configurations :</p>
+<table><thead><tr><th></th><th>ancien</th><th>nouveau</th></tr></thead><tbody>
+<tr><td>CPU <br>tdp - <a rel="external" href="https://www.cpubenchmark.net/compare/2960vs5157/Intel-Celeron-J3355-vs-Intel-N100">cpu mark</a></td><td>Intel Celeron J3355<br>10W - 1197</td><td>Intel N100<br>6w - 5469</td></tr>
+<tr><td>Stokage</td><td>5 emplacements pour disque dure 3.5<br>USB interne (pour l'os)</td><td>6 ports sata<br>2 ports nvme<br>1 usb</td></tr>
+<tr><td>Ram</td><td>2G + 8Go en ddr3</td><td>16Go en ddr5</td></tr>
+<tr><td>Réseau</td><td>2 ports 1 Gigabyte</td><td>4 ports 2.5 Gigabyte</td></tr>
+</tbody></table>
+<p>Comme on peut voire le CPU est annoncé comme 4.5 plus puissant, je vais tester.</p>
+<p>Maintenant, il faut choisir OS, je pourrais rester sur openmediavault, il est bien, mais je m'oriente quelle chose de plus personnaliser.
+J'ai choisi <a rel="external" href="https://nixos.org/">NixOS</a> comme os de base et Kubernetes pour les applications.<br>
+Pourquoi ce choix :</p>
+<ul>
+<li>Apprendre, oui sur ce projet, je souhaite apprendre et tester de nouvelles choses.</li>
+<li>Le choix de NixOS, plus que des distributions classiques, c'est pour son côté déclaratif. Toute la configuration de base se trouve dans un ensemble de fichier. Un Os que j'ai utilisé pendant un certain temps sur mon pc personnel.</li>
+<li>Le choix de Kubernetes, je ne connaissais pas avant, c'est utilisé au travail, il m'est arrivé de faire des petites retouches, mais cela resté superficiel.</li>
+</ul>
+<p>Je pourrais utiliser les services fournis par NixOS, Mais c'est l'occasion d'apprendre à utiliser Kubernetes.</p>
+
+  </div>
+</article>
+
+
+
+<nav class="section-pages">
+  <h4>Configuration de mon nas:</h4>
+  <ul>
+    
+      
+        
+          
+      <li class="current">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;000-my-new-nas&#x2F;">Présentation de mon nouveau NAS</a>
+      </li>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;010-install-test-vm&#x2F;">Installation d&#x27;une machine virtuel pour tester</a>
+      </li>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;030-coredns&#x2F;">Installation de CoreDNS</a>
+      </li>
+    
+      
+        
+          
+      <li class="">
+        <a href="https:&#x2F;&#x2F;adavida.github.io&#x2F;articles&#x2F;000_nas&#x2F;040-openldap&#x2F;">Installation de OpenLDAP</a>
+      </li>
+    
+  </ul>
+</nav>
+
+
+    </div>
+  </main>
+  
+  <footer>
+    <div class="footer-about">
+      <p>Blog personnel sur mes tribulations personnelles sur le développement, Linux, et auto-hébergement.</p>
+    </div>
+  </footer>
+</body>
+
+</html>
